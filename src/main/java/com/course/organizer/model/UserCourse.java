@@ -17,7 +17,7 @@ import lombok.ToString;
 @Data
 @Entity
 @Table(name="course_user")
-public class CourseUser {
+public class UserCourse {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

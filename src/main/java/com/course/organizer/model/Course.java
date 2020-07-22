@@ -25,7 +25,7 @@ public class Course {
     @Column(name="desc")
     private String desc;
 
-    @Column(name="available")
-    private String available;
+    @Column(name="status")
+    private String status;
 
 }

@@ -11,8 +11,12 @@
 </head>
 
 <body>
+    <div th:insert="/navbar">  </div>
+
     <div class="container my-5">
         <h3> Add Course</h3>
+        <br>
+
         <div class="card">
             <div class="card-body">
                 <div class="col-md-10">
@@ -30,8 +34,12 @@
                             </div>
 
                             <div class="col-md-6">
-                                <input type="submit" class="btn btn-primary" value=" Submit ">
+                                <a th:href="@{/course}"  class="btn btn-danger">
+                                    Cancel
+                                </a>
+                                <input type="submit" class="btn btn-success" value=" Submit ">
                             </div>
+
 
                             <input type="hidden" id="id" th:field="*{id}">
     

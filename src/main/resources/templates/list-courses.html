@@ -8,60 +8,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+
+    <script>
+
+        $('#trigger').click(function () {
+            $('#basicExample').modal({show : true});
+        });
+
+        function submit(){
+        }
+    </script>
 </head>
 
 <body>
+    <div th:insert="/navbar">  </div>
     <div class="container my-2">
-    <div class="card">
-    <div class="card-body">
-        <div th:switch="${userCourses}" class="container my-5">
-            <div class="col-md-10" sec:authorize="hasAuthority('course:create')">
-                <p class="my-5">
-                    <a href="/course/create" class="btn btn-primary">
-                    <i class="fas fa-user-plus ml-2"> Add Course </i></a>
-                </p>
-            </div>
-            <div class="col-md-10">
-                <h2 th:case="null">No record found !!</h2>
-                <div th:case="*">
-                    <table class="table table-striped table-responsive-md">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th sec:authorize="hasAuthority('course:update')">Edit</th>
-                                <th sec:authorize="hasAuthority('course:delete')">Delete</th>
-                                <th>View</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="userCourse : ${userCourses}">
-                                <td th:text="${userCourse.course.title}"></td>
-                                <td th:text="${userCourse.course.desc}"></td>
-                                <td sec:authorize="hasAuthority('course:update')">
-                                    <a th:href="@{/course/edit/{id}(id=${userCourse.course.id})}" class="btn btn-primary">
-                                        <i class="fas fa-user-edit ml-2"></i>
-                                    </a>
-                                </td>
-                                <td sec:authorize="hasAuthority('course:delete')">
-                                    <a th:href="@{/course/delete/{id}(id=${userCourse.course.id})}" class="btn btn-primary">
-                                        <i class="fas fa-user-times ml-2"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <a th:href="@{/course/read/{id}(id=${userCourse.course.id})}" class="btn btn-primary">
-                                        <i class="fas fa-user ml-2"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+        <div class="card">
+            <div class="card-body">
+                <div th:switch="${userCourses}" class="container my-5">
 
+                    <div sec:authorize="hasAnyRole('STUDENT','TEACHER')" class="col-md-10">
+                        <p class="h2">Courses Selection</p>
+                        <br>
+                        <p>
+                            <strong>Courses for:&nbsp;</strong>
+                            <mark><span th:text="${userName}"/></mark>
+                            &nbsp;-&nbsp;
+                            <strong>Role: &nbsp;</strong>
+                            <mark><span th:text="${userRole}"/></mark></mark>
+                        </p>
+                        <br>
+                    </div>
+
+                    <div sec:authorize="hasRole('ADMIN')" class="col-md-10">
+                        <p class="h2">Courses Management</p>
+                        <br>
+                        <p>
+                            <strong>Courses Administrator:&nbsp;</strong>
+                            <mark><span th:text="${userName}"/></mark>
+                            &nbsp;-&nbsp;
+                            <strong>Role: &nbsp;</strong>
+                            <mark><span th:text="${userRole}"/></mark></mark>
+                        </p>
+                    </div>
+
+                    <div class="col-md-10" sec:authorize="hasAuthority('course:create')">
+                        <p class="my-5">
+                            <a href="/course/create" class="btn btn-primary">
+                                <i class="fa fa-plus-square ml-2">  </i>
+                                &nbsp; Add Course
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-30">
+                        <div th:case="*">
+                            <table class="table table-striped table-responsive-md">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Description</th>
+                                        <th sec:authorize="hasAnyAuthority('course:attend','course:give','course:update')">Status</th>
+                                        <th>View</th>
+                                        <th sec:authorize="hasAuthority('course:update')">Edit</th>
+                                        <th sec:authorize="hasAuthority('course:disable')">Actions</th>
+                                        <th sec:authorize="hasAnyAuthority('course:attend','course:give')">Actions</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="userCourse : ${userCourses}">
+                                        <td th:text="${userCourse.courseTitle}"></td>
+                                        <td th:text="${userCourse.courseDescription}"></td>
+
+                                        <!-- Statuses -->
+                                        <td sec:authorize="hasRole('ADMIN')">
+                                            <button th:if="${userCourse.courseStatus} eq 'AVAILABLE'" type="button" class="btn btn-outline-success btn-lg">Available</button>
+                                            <button th:if="${userCourse.courseStatus} eq 'DISABLED'" type="button" class="btn btn-outline-secondary btn-lg">Disabled</button>
+                                        </td>
+
+                                        <td sec:authorize="hasRole('STUDENT')" th:if="${userCourse.courseStatus} eq 'AVAILABLE'">
+                                            <button th:if="${userCourse.userCourseStatus} eq 'ATTENDING'" type="button" class="btn btn-outline-success btn-lg">Attending</button>
+                                            <button th:if="${userCourse.userCourseStatus} eq 'LEAVED'" type="button" class="btn btn-outline-secondary btn-lg">Leaved</button>
+                                            <button th:if="${userCourse.userCourseStatus == null}"type="button" class="btn btn-outline-warning btn-lg">Pending</button>
+                                        </td>
+                                        <td sec:authorize="hasRole('TEACHER')" th:if="${userCourse.courseStatus} eq 'AVAILABLE'">
+                                            <button th:if="${userCourse.userCourseStatus} eq 'GIVING_COURSE'" type="button" class="btn btn-outline-success btn-lg">Giving Course</button>
+                                            <button th:if="${userCourse.userCourseStatus} eq 'GIVING_COURSE_STOPPED'" type="button" class="btn btn-outline-secondary btn-lg">Course Stopped</button>
+                                            <button th:if="${userCourse.userCourseStatus == null}"type="button" class="btn btn-outline-warning btn-lg">Pending</button>
+                                        </td>
+
+                                        <td sec:authorize="hasAnyRole('TEACHER','STUDENT')"th:if="${userCourse.courseStatus} eq 'DISABLED'">
+                                            <button type="button" class="btn btn-outline-secondary btn-lg">Disabled</button>
+                                        </td>
+
+                                        <!-- View Course -->
+                                        <td>
+                                            <a th:href="@{/course/read/{id}(id=${userCourse.courseId})}" class="btn btn-primary btn-lg">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+
+                                        <!-- Actions for ADMIN -->
+                                        <td sec:authorize="hasAuthority('course:update')">
+                                            <a th:href="@{/course/edit/{id}(id=${userCourse.courseId})}" class="btn btn-primary btn-lg">
+                                                <i class="fas fa-pencil-alt"></i>
+                                            </a>
+                                        </td>
+
+                                        <td sec:authorize="hasAuthority('course:disable')" th:if="${userCourse.courseStatus} eq 'AVAILABLE'">
+                                            <form  class="form-inline" th:action="@{/course/disable/}" method="post" >
+                                                <input type="hidden" id="courseId" name="courseId" th:value="*{userCourse.courseId}">
+                                                <button type="submit" class="btn btn-danger btn-lg"><i class="fas fa-trash"></i></button>
+                                            </form>
+                                        </td>
+
+                                        <td sec:authorize="hasAuthority('course:enable')" th:if="${userCourse.courseStatus} eq 'DISABLED'">
+                                            <form  class="form-inline" th:action="@{/course/enable/}" method="post" >
+                                                <input type="hidden" id="courseId" name="courseId" th:value="*{userCourse.courseId}">
+                                                <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-play"></i></button>
+                                            </form>
+                                        </td>
+
+                                        <!-- Actions for STUDENT or TEACHER -->
+                                        <td sec:authorize="hasAnyRole('STUDENT','TEACHER')" th:if="${userCourse.courseStatus} eq 'AVAILABLE'">
+
+                                            <form sec:authorize="hasAuthority('course:attend')" th:if="${userCourse.userCourseStatus == null} or ${userCourse.userCourseStatus} eq 'LEAVED'"
+                                                  class="form-inline"
+                                                  th:action="@{/course/student/attend}" method="post" >
+                                                <input type="hidden" id="courseId" name="courseId" th:value="*{userCourse.courseId}">
+                                                <input type="hidden" id="userId" name="userId" th:value="*{userId}">
+                                                <button type="submit" class="btn btn-success btn-lg">Leave Course<i class="fas fa-calendar-plus ml-2"></i></button>
+                                            </form>
+
+                                            <form sec:authorize="hasAuthority('course:leave')" th:if="${userCourse.userCourseStatus} eq 'ATTENDING'"
+                                                  class="form-inline"
+                                                  th:action="@{/course/student/leave}" method="post" >
+                                                <input type="hidden" id="courseId" name="courseId" th:value="*{userCourse.courseId}">
+                                                <input type="hidden" id="userId" name="userId" th:value="*{userId}">
+                                                <button type="submit" class="btn btn-danger btn-lg">Leave Course<i class="fas fa-calendar-minus ml-2"></i></button>
+                                            </form>
+
+                                            <form sec:authorize="hasAuthority('course:give')" th:if="${userCourse.userCourseStatus == null} or ${userCourse.userCourseStatus} eq 'GIVING_COURSE_STOPPED'"
+                                                  class="form-inline"
+                                                  th:action="@{/course/teacher/give}" method="post" >
+                                                <input type="hidden" id="courseId" name="courseId" th:value="*{userCourse.courseId}">
+                                                <input type="hidden" id="userId" name="userId" th:value="*{userId}">
+                                                <button type="submit" class="btn btn-success btn-lg">Give Course<i class="fas fa-calendar-plus ml-2"></i></button>
+                                            </form>
+
+                                            <form sec:authorize="hasAuthority('course:stop')" th:if="${userCourse.userCourseStatus} eq 'GIVING_COURSE'" class="form-inline"
+                                                  th:action="@{/course/teacher/stop}" method="post" >
+                                                <input type="hidden" id="courseId" name="courseId" th:value="*{userCourse.courseId}">
+                                                <input type="hidden" id="userId" name="userId" th:value="*{userId}">
+                                                <button type="submit" class="btn btn-danger btn-lg">Stop Course<i class="fas fa-calendar-minus ml-2"></i></button>
+                                            </form>
+
+                                        </td>
+                                        <td sec:authorize="hasAnyRole('TEACHER','STUDENT')"th:if="${userCourse.courseStatus} eq 'DISABLED'">
+                                            <button type="button" class="btn btn-outline-secondary btn-lg">No action available</button>
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    </div>
     </div>
 </body>
 

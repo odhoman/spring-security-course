@@ -11,36 +11,42 @@
 </head>
 
 <body>
-<div class="container my-5">
-    <h3> Edit Course</h3>
-    <div class="card">
-        <div class="card-body">
-            <div class="col-md-10">
-                <form action="#" th:action="@{/course/createOrUpdate}" th:object="${course}" method="post">
-                    <div class="row">
-                        <div class="form-group col-md-8">
-                            <label for="title" class="col-form-label">Title</label>
-                            <input type="text" th:field="*{title}" class="form-control"
-                                   id="title" placeholder="Title" />
-                        </div>
-                        <div class="form-group col-md-8">
-                            <label for="desc" class="col-form-label">Description</label>
-                            <input type="text" th:field="*{desc}" class="form-control"
-                                   id="desc" placeholder="Description" />
-                        </div>
+    <div th:insert="/navbar">  </div>
+    <div class="container my-5">
+        <h3> Edit Course</h3>
+        <br>
+        <div class="card">
+            <div class="card-body">
+                <div class="col-md-10">
+                    <form action="#" th:action="@{/course/createOrUpdate}" th:object="${course}" method="post">
+                        <div class="row">
+                            <div class="form-group col-md-8">
+                                <label for="title" class="col-form-label">Title</label>
+                                <input type="text" th:field="*{title}" class="form-control"
+                                       id="title" placeholder="Title" />
+                            </div>
+                            <div class="form-group col-md-8">
+                                <label for="desc" class="col-form-label">Description</label>
+                                <input type="text" th:field="*{desc}" class="form-control"
+                                       id="desc" placeholder="Description" />
+                            </div>
 
-                        <div class="col-md-6">
-                            <input type="submit" class="btn btn-primary" value=" Submit ">
+                            <div class="col-md-6">
+                                <a th:href="@{/course}"  class="btn btn-danger">
+                                    Cancel
+                                </a>
+                                <input type="submit" class="btn btn-success" value=" Submit ">
+                            </div>
+
+
+                            <input type="hidden" id="id" th:field="*{id}">
+
                         </div>
-
-                        <input type="hidden" id="id" th:field="*{id}">
-
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 </body>
 
 </html>

@@ -1,18 +1,20 @@
 package com.course.organizer.service;
 
+import static com.course.organizer.model.CourseState.AVAILABLE;
+import static com.course.organizer.model.CourseState.DISABLED;
+
 import com.course.organizer.exception.RecordNotFoundException;
 import com.course.organizer.model.Course;
-import com.course.organizer.model.CourseUserDto;
-import com.course.organizer.model.CourseUserDto2;
+import com.course.organizer.model.CourseState;
 import com.course.organizer.model.User;
+import com.course.organizer.model.UserCourse;
+import com.course.organizer.model.UserCourseDto;
+import com.course.organizer.model.UserCourseState;
 import com.course.organizer.repository.CourseRepository;
-import com.course.organizer.repository.CourseUserRepository;
+import com.course.organizer.repository.UserCourseRepository;
 import com.course.organizer.security.ApplicationUserRole;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,21 +22,30 @@ import org.springframework.stereotype.Service;
 public class CourseService {
 
   @Autowired
-  CourseRepository repository;
-
-  @Autowired
   UserService userService;
 
   @Autowired
-  CourseUserRepository courseUserRepository;
+  UserCourseRepository userCourseRepository;
 
-  public List<Course> getAllCourses() {
-    return StreamSupport.stream(repository.findAll().spliterator(), false)
-        .collect(Collectors.toList());
+  @Autowired
+  CourseRepository courseRepository;
+
+  public List<UserCourseDto> getAllCourses() {
+    List<UserCourseDto> courseUserList = courseRepository.getAllCourses();
+    courseUserList.forEach(a -> {
+      System.out.println("-------------");
+      System.out.println(a.getCourseId());
+      System.out.println(a.getCourseTitle());
+      System.out.println(a.getCourseDescription());
+      System.out.println(a.getCourseStatus());
+      System.out.println(a.getUserCourseStatus());
+      System.out.println("-------------");
+    });
+    return courseUserList;
   }
 
   public Course getCourseById(Long id) throws RecordNotFoundException {
-    Optional<Course> courseEntity = repository.findById(id);
+    Optional<Course> courseEntity = courseRepository.findById(id);
 
     if (courseEntity.isPresent()) {
       return courseEntity.get();
@@ -43,101 +54,104 @@ public class CourseService {
     }
   }
 
-  public Course createOrUpdateCourse(Course entity) {
-    if (entity.getId() == null) {
-      entity = repository.save(entity);
-
-      return entity;
+  public void createOrUpdateCourse(Course course) {
+    if (course.getId() == null) {
+      course.setStatus(AVAILABLE.name());
+      courseRepository.save(course);
     } else {
-      Optional<Course> courseEntity = repository.findById(entity.getId());
+      Optional<Course> courseEntity = courseRepository.findById(course.getId());
 
       if (courseEntity.isPresent()) {
         Course newEntity = courseEntity.get();
-        newEntity.setTitle(entity.getTitle());
-        newEntity.setDesc(entity.getDesc());
-
-        newEntity = repository.save(newEntity);
-
-        return newEntity;
+        newEntity.setTitle(course.getTitle());
+        newEntity.setDesc(course.getDesc());
       } else {
-        entity = repository.save(entity);
-
-        return entity;
+        course.setStatus(AVAILABLE.name());
       }
     }
   }
 
-  public void deleteCourseById(Long id) throws RecordNotFoundException {
-    Optional<Course> courseEntity = repository.findById(id);
+  public void enableCourseById(Long id) throws RecordNotFoundException {
+    changeStatusCourse(id, AVAILABLE);
+  }
 
-    if (courseEntity.isPresent()) {
-      repository.deleteById(id);
+  public void disableCourseById(Long id) throws RecordNotFoundException {
+    changeStatusCourse(id, DISABLED);
+  }
+
+  private void changeStatusCourse(Long id, CourseState courseState) throws RecordNotFoundException {
+    Optional<Course> courseOptional = courseRepository.findById(id);
+
+    if (courseOptional.isPresent()) {
+      Course course = courseOptional.get();
+      courseOptional.get().setStatus(courseState.name());
+      courseRepository.save(course);
     } else {
       throw new RecordNotFoundException("No course record exist for given id");
     }
   }
 
-  public List<CourseUserDto> getUserCoursesByUserName(String userName) {
+  public List<UserCourseDto> getUserCoursesByUserName(String userName) {
+    List<UserCourseDto> courseUserList;
+
     User user = userService.getUserByUserName(userName);
-
-    List<CourseUserDto> courseUserList = Collections.emptyList();
-
     if (user.getRole().getName().equals(ApplicationUserRole.ADMIN.name())) {
-
-      return courseUserList = getAllCourses().stream().map(course -> {
-        CourseUserDto courseUserDto = new CourseUserDto();
-        courseUserDto.setCourse(course);
-        courseUserDto.setUser(user);
-        return courseUserDto;
-      }).collect(Collectors.toList());
-
+      courseUserList = getAllCourses();
     } else {
 
-//      List<Course> courses = getAllCourses();
+      courseUserList = userCourseRepository
+          .getAllUserAndNotUserCoursesByUserId(user.getId());
 
-      courseUserList = courseUserRepository
-          .getAllUserNotUserCoursesByUserId(user.getId()).stream().map(
-              courseUser -> new CourseUserDto(user, courseUser.getCourse(), courseUser.getStatus()))
-          .collect(Collectors.toList());
+      System.out.println(courseUserList);
 
-      final List<CourseUserDto2> allUserNotUserCoursesByUserId2 = courseUserRepository
-          .getAllUserNotUserCoursesByUserId2(user.getId());
-
-      System.out.println(allUserNotUserCoursesByUserId2);
-
-      allUserNotUserCoursesByUserId2.forEach(a->{
+      courseUserList.forEach(a -> {
         System.out.println("-------------");
-        System.out.println(a.getUserId());
         System.out.println(a.getCourseId());
         System.out.println(a.getCourseTitle());
-        System.out.println(a.getCourseName());
-        System.out.println(a.getStatus());
+        System.out.println(a.getCourseDescription());
+        System.out.println(a.getCourseStatus());
+        System.out.println(a.getUserCourseStatus());
         System.out.println("-------------");
       });
 
-//      List<CourseUserDto> courseUserNoAdminList = courseUserRepository
-//          .getAllUserCoursesByUserId(user.getId()).stream().map(
-//              courseUser -> new CourseUserDto(user, courseUser.getCourse(), courseUser.getStatus()))
-//          .collect(Collectors.toList());
-//
-//      if (courseUserNoAdminList.isEmpty()) {
-//        courseUserList = courses.stream().map(course -> new CourseUserDto(user, course, null))
-//            .collect(
-//                Collectors.toList());
-//      } else {
-//
-//        List<Course> userSimpleCourses = courseUserNoAdminList.stream()
-//            .map(CourseUserDto::getCourse).collect(
-//                Collectors.toList());
-//
-//      }
-
-//
-//      courseUserList.addAll(courseUserNoAdminList);
-//
-//      courses.stream().filter()
-
     }
     return courseUserList;
+  }
+
+  public void userAttendCourse(Long userId, Long courseId) {
+    changeUserCourseStatus(userId, courseId, UserCourseState.ATTENDING);
+  }
+
+  public void userLeaveCourse(Long userId, Long courseId) {
+    changeUserCourseStatus(userId, courseId, UserCourseState.LEAVED);
+  }
+
+  public void userGiveCourse(Long userId, Long courseId) {
+    changeUserCourseStatus(userId, courseId, UserCourseState.GIVING_COURSE);
+  }
+
+  public void userStopGivingCourse(Long userId, Long courseId) {
+    changeUserCourseStatus(userId, courseId, UserCourseState.GIVING_COURSE_STOPPED);
+  }
+
+  private void changeUserCourseStatus(Long userId, Long courseId, UserCourseState userCourseState) {
+
+    Optional<UserCourse> userCourseOptional = userCourseRepository
+        .findByCourseIdAndUserId(courseId, userId);
+
+    UserCourse userCourse = userCourseOptional.orElseGet(() -> {
+      User user = new User();
+      user.setId(userId);
+      Course course = new Course();
+      course.setId(courseId);
+      UserCourse newUserCourse = new UserCourse();
+      newUserCourse.setUser(user);
+      newUserCourse.setCourse(course);
+      return newUserCourse;
+    });
+
+    userCourse.setStatus(userCourseState.name());
+
+    userCourseRepository.save(userCourse);
   }
 }
