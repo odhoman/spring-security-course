@@ -10,16 +10,6 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-
-    <script>
-
-        $('#trigger').click(function () {
-            $('#basicExample').modal({show : true});
-        });
-
-        function submit(){
-        }
-    </script>
 </head>
 
 <body>
@@ -139,7 +129,7 @@
                                                   th:action="@{/course/student/attend}" method="post" >
                                                 <input type="hidden" id="courseId" name="courseId" th:value="*{userCourse.courseId}">
                                                 <input type="hidden" id="userId" name="userId" th:value="*{userId}">
-                                                <button type="submit" class="btn btn-success btn-lg">Leave Course<i class="fas fa-calendar-plus ml-2"></i></button>
+                                                <button type="submit" class="btn btn-success btn-lg">Attend Course<i class="fas fa-calendar-plus ml-2"></i></button>
                                             </form>
 
                                             <form sec:authorize="hasAuthority('course:leave')" th:if="${userCourse.userCourseStatus} eq 'ATTENDING'"

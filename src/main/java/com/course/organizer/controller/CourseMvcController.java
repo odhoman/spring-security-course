@@ -1,4 +1,4 @@
-package com.course.organizer.web;
+package com.course.organizer.controller;
 
 import com.course.organizer.exception.RecordNotFoundException;
 import com.course.organizer.model.Course;
